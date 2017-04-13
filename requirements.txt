@@ -1,9 +1,17 @@
-boto==2.46.1
-gunicorn==19.7.1
-httplib2==0.10.3
-pysocks==1.6.7
-pytz==2017.2
-simplejson==3.10.0
-six==1.10.0
-twilio==6.3.dev0
-virtualenv==15.1.0
+# ----------------------
+# Flask
+# ----------------------
+flask
+
+
+# ----------------------
+# Testing
+# ----------------------
+mock
+
+
+# ----------------------
+# Production Server
+# ----------------------
+gevent
+gunicorn
