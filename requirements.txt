@@ -1,7 +1,6 @@
 boto==2.46.1
 click==6.7
 Flask==0.12.1
-gevent==1.2.1
 greenlet==0.4.12
 gunicorn==19.7.1
 httplib2==0.10.3
