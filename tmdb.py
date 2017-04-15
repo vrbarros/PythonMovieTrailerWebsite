@@ -1,188 +1,197 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import http.client
 import json
 
-class Default(dict):
-    """ Class to be used with format_map """
 
-    def __missing__(self, key):
-        return key
+class Default(dict):
+   """ Class to be used with format_map """
+
+   def __missing__(self, key):
+      return key
 
 
 class TMDB_Setup():
-    """ The Movie Database setup params """
+   """ The Movie Database setup params """
 
-    def __init__(self, Username, Password):
-        self.appAPIKEY = "6a916bd6117299211ce7d825307e6c82"
-        self.Username = Username
-        self.Password = Password
+   def __init__(self, Username, Password):
+      self.appAPIKEY = "6a916bd6117299211ce7d825307e6c82"
+      self.Username = Username
+      self.Password = Password
 
 # Command to setup and connect to TMDB
 my_setup = TMDB_Setup("victorbarros", "udacity2017")
 conn = http.client.HTTPSConnection("api.themoviedb.org")
 
+
 class TMDB_Request_Token(TMDB_Setup):
-    """ Request a new token to be used to validate the token """
+   """ Request a new token to be used to validate the token """
 
-    def __init__(self):
+   def __init__(self):
 
-        payload = "{}"
+      payload = "{}"
 
-        url = "/3/authentication/token/new?api_key={api_key}"
-        url = url.format_map(Default(api_key=my_setup.appAPIKEY))
+      url = "/3/authentication/token/new?api_key={api_key}"
+      url = url.format_map(Default(api_key=my_setup.appAPIKEY))
 
-        print("[TMDB_Request_Token] Call URL in: " + url)
+      print("[TMDB_Request_Token] Call URL in: " + url)
 
-        conn.request("GET", url, payload)
+      conn.request("GET", url, payload)
 
-        res = conn.getresponse()
-        raw_data = res.read()
-        data = json.loads(raw_data)
+      res = conn.getresponse()
+      raw_data = res.read()
+      data = json.loads(raw_data)
 
-        print(raw_data)
+      print(raw_data)
 
-        self.RequestToken = data['request_token']
+      self.RequestToken = data['request_token']
 
 
 class TMDB_Validade_Token(TMDB_Setup):
-    """ Validate the new token """
+   """ Validate the new token """
 
-    def __init__(self, rt):
-        payload = "{}"
+   def __init__(self, rt):
+      payload = "{}"
 
-        url = "/3/authentication/token/validate_with_login?request_token={request_token}&password={password}&username={username}&api_key={api_key}"
-        url = url.format_map(Default(
-            request_token=rt, password=my_setup.Password, username=my_setup.Username, api_key=my_setup.appAPIKEY))
+      url = "/3/authentication/token/validate_with_login?request_token={request_token}&password={password}&username={username}&api_key={api_key}"
+      url = url.format_map(Default(
+          request_token=rt, password=my_setup.Password, username=my_setup.Username, api_key=my_setup.appAPIKEY))
 
-        print("[TMDB_Validade_Token] Call URL in: " + url)
+      print("[TMDB_Validade_Token] Call URL in: " + url)
 
-        conn.request("GET", url, payload)
+      conn.request("GET", url, payload)
 
-        res = conn.getresponse()
-        raw_data = res.read()
-        data = json.loads(raw_data)
+      res = conn.getresponse()
+      raw_data = res.read()
+      data = json.loads(raw_data)
 
-        print(raw_data)
+      print(raw_data)
 
-        # Check if exist any status message or error message
-        if not str(raw_data).find("status_message") == -1:
-            print(data['status_message'])
+      # Check if exist any status message or error message
+      if not str(raw_data).find("status_message") == -1:
+         print(data['status_message'])
+         self.ValidatedToken = False
+      else:
+         if data['success'] == True:
+            self.ValidatedToken = data['success']
+         else:
             self.ValidatedToken = False
-        else:
-            if data['success'] == True:
-                self.ValidatedToken = data['success']
-            else:
-                self.ValidatedToken = False
 
 
 class TMDB_CreateSession(TMDB_Setup):
 
-    def __init__(self, rt):
-        payload = "{}"
+   def __init__(self, rt):
+      payload = "{}"
 
-        url = "/3/authentication/session/new?api_key={api_key}&request_token={request_token}"
-        url = url.format_map(Default(api_key=my_setup.appAPIKEY, request_token=rt))
+      url = "/3/authentication/session/new?api_key={api_key}&request_token={request_token}"
+      url = url.format_map(Default(api_key=my_setup.appAPIKEY, request_token=rt))
 
-        print("[TMDB_CreateSession] Call URL in: " + url)
+      print("[TMDB_CreateSession] Call URL in: " + url)
 
-        conn.request("GET", url, payload)
+      conn.request("GET", url, payload)
 
-        res = conn.getresponse()
-        raw_data = res.read()
-        data = json.loads(raw_data)
+      res = conn.getresponse()
+      raw_data = res.read()
+      data = json.loads(raw_data)
 
-        print(raw_data)
+      print(raw_data)
 
-        # Check if exist any status message or error message
-        if not str(raw_data).find("status_message") == -1:
-            print(data['status_message'])
+      # Check if exist any status message or error message
+      if not str(raw_data).find("status_message") == -1:
+         print(data['status_message'])
+         self.ValidatedSession = False
+      else:
+         if data['success'] == True:
+            self.ValidatedSession = data['success']
+            self.SessionID = data['session_id']
+         else:
             self.ValidatedSession = False
-        else:
-            if data['success'] == True:
-                self.ValidatedSession = data['success']
-                self.SessionID = data['session_id']
-            else:
-                self.ValidatedSession = False
+
 
 class TMDB_GetAccountID(TMDB_Setup):
-    """Get the account ID to be used by other requests"""
-    def __init__(self, sid):
-        payload = "{}"
+   """Get the account ID to be used by other requests"""
 
-        url = "/3/account?api_key={api_key}&session_id={session_id}"
-        url = url.format_map(Default(api_key=my_setup.appAPIKEY, session_id=sid))
+   def __init__(self, sid):
+      payload = "{}"
 
-        print("[TMDB_GetAccountID] Call URL in: " + url)
+      url = "/3/account?api_key={api_key}&session_id={session_id}"
+      url = url.format_map(Default(api_key=my_setup.appAPIKEY, session_id=sid))
 
-        conn.request("GET", url, payload)
+      print("[TMDB_GetAccountID] Call URL in: " + url)
 
-        res = conn.getresponse()
-        raw_data = res.read()
-        data = json.loads(raw_data)
+      conn.request("GET", url, payload)
 
-        print(raw_data)
+      res = conn.getresponse()
+      raw_data = res.read()
+      data = json.loads(raw_data)
 
-        # Check if exist any status message or error message
-        if not str(raw_data).find("status_message") == -1:
-            print(data['status_message'])
-            self.AccountID = 0
-        else:
-            self.AccountID = data['id']
-            print("Account ID defined in " + str(self.AccountID))
+      print(raw_data)
+
+      # Check if exist any status message or error message
+      if not str(raw_data).find("status_message") == -1:
+         print(data['status_message'])
+         self.AccountID = 0
+      else:
+         self.AccountID = data['id']
+         print("Account ID defined in " + str(self.AccountID))
+
 
 class TMDB_FavoriteMovies(TMDB_Setup):
-    """Get the list of Favorite Movies"""
-    def __init__(self, sid, acid):
-        payload = "{}"
+   """Get the list of Favorite Movies"""
 
-        url = "/3/account/{account_id}/favorite/movies?api_key={api_key}&session_id={session_id}"
-        url = url.format_map(Default(account_id=acid,api_key=my_setup.appAPIKEY, session_id=sid))
+   def __init__(self, sid, acid):
+      payload = "{}"
 
-        print("[TMDB_FavoriteMovies] Call URL in: " + url)
+      url = "/3/account/{account_id}/favorite/movies?api_key={api_key}&session_id={session_id}"
+      url = url.format_map(Default(account_id=acid, api_key=my_setup.appAPIKEY, session_id=sid))
 
-        conn.request("GET", url, payload)
+      print("[TMDB_FavoriteMovies] Call URL in: " + url)
 
-        res = conn.getresponse()
-        raw_data = res.read()
-        data = json.loads(raw_data)
+      conn.request("GET", url, payload)
 
-        print(raw_data)
+      res = conn.getresponse()
+      raw_data = res.read()
+      data = json.loads(raw_data)
 
-        # Check if exist any status message or error message
-        if not str(raw_data).find("status_message") == -1:
-            print(data['status_message'])
+      print(raw_data)
 
-        else:
-            if data['page'] == 1:
-                self.MovieList = data
-            else:
-                self.MovieList = None
+      # Check if exist any status message or error message
+      if not str(raw_data).find("status_message") == -1:
+         print(data['status_message'])
+
+      else:
+         if data['page'] == 1:
+            self.MovieList = data
+         else:
+            self.MovieList = None
+
 
 class TMDB_Trailer(TMDB_Setup):
-    """Get the movie trailer"""
-    def __init__(self, mid):
-        payload = "{}"
+   """Get the movie trailer"""
 
-        url = "/3/movie/{movie_id}/videos?api_key={api_key}"
-        url = url.format_map(Default(movie_id=mid,api_key=my_setup.appAPIKEY))
+   def __init__(self, mid):
+      payload = "{}"
 
-        print("[TMDB_Trailer] Call URL in: " + url)
+      url = "/3/movie/{movie_id}/videos?api_key={api_key}"
+      url = url.format_map(Default(movie_id=mid, api_key=my_setup.appAPIKEY))
 
-        conn.request("GET", url, payload)
+      print("[TMDB_Trailer] Call URL in: " + url)
 
-        res = conn.getresponse()
-        raw_data = res.read()
-        data = json.loads(raw_data)
+      conn.request("GET", url, payload)
 
-        print(raw_data)
+      res = conn.getresponse()
+      raw_data = res.read()
+      data = json.loads(raw_data)
 
-        # Check if exist any status message or error message
-        if not str(raw_data).find("status_message") == -1:
-            print(data['status_message'])
+      print(raw_data)
 
-        else:
-            if data['id'] > 0:
-                self.TrailerList = data
-            else:
-                self.TrailerList = None
+      # Check if exist any status message or error message
+      if not str(raw_data).find("status_message") == -1:
+         print(data['status_message'])
 
-
+      else:
+         if data['id'] > 0:
+            self.TrailerList = data
+         else:
+            self.TrailerList = None
