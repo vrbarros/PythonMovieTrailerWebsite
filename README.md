@@ -3,6 +3,8 @@ PythonMoviewTrailerWebsite
 
 Hi, welcome to my first Python project! I changed a little the scope of the project in a away to use API integration, Bootstrap and Flask.
 
+This project was developed using Python 3.6.
+
 
 As I'm using TMDB database API to download you favorite movies, remebber to change your credentials in the my_setup = TMDB_Setup() in tmdb.py file.
 
